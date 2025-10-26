@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from datetime import date, datetime, timedelta
 from dateutil import parser as dateparse
-import math, re, hashlib
+import math, re, hashlib, os
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
@@ -72,11 +72,8 @@ def milestones(born: date):
     years = days // 365
     next_10k = ((days // 10000) + 1) * 10000
     next_10k_date = born + timedelta(days=next_10k)
-    # basit rehber metni
-    text = f"Yaş: {years} • Gün: {days} • Sonraki 10K gün: {next_10k_date.isoformat()}."
-    return {"Yaş":years,"Gün":days,"Sonraki10K":next_10k_date.isoformat(),"text":text}
+    return {"Yaş":years,"Gün":days,"Sonraki10K":next_10k_date.isoformat()}
 
-# ---- Günlük burç yorumu (seed'li liste; her gün değişen kısa rehber) ----
 DAILY_LINES_TR = {
     "Ateş": [
         "Cesur bir başlangıç yap; küçük bir adım bile alevi büyütür.",
@@ -99,42 +96,14 @@ DAILY_LINES_TR = {
         "Derin bir nefes; akışta kal ve kabullen."
     ]
 }
-DAILY_LINES_EN = {
-    "Fire": [
-        "Initiate boldly; even a tiny spark becomes a flame.",
-        "Set the pace; swift clarity leads to clean results.",
-        "Aim your passion; focus turns heat into power."
-    ],
-    "Earth": [
-        "Make it tangible; structure multiplies progress.",
-        "Small, steady steps compound today.",
-        "Simplify your resources; clarity boosts output."
-    ],
-    "Air": [
-        "Share your idea; connections unlock doors.",
-        "Ask questions; curiosity finds the path.",
-        "Quiet the mind; the best ideas arrive in stillness."
-    ],
-    "Water": [
-        "Trust intuition; your heart is a compass.",
-        "Give your feelings space; softness is strength.",
-        "Breathe deeply; stay in flow, accept and move."
-    ]
-}
 
-def daily_horoscope(element_tr: str, lang="tr"):
+def daily_horoscope(element_tr: str):
     today = date.today().isoformat()
     seed = int(hashlib.md5(today.encode()).hexdigest(), 16)
     idx = seed % 3
-    if lang == "tr":
-        return DAILY_LINES_TR.get(element_tr, ["Bugün merkezde kal."])[idx]
-    # map TR element to EN
-    map_en = {"Ateş":"Fire","Toprak":"Earth","Hava":"Air","Su":"Water"}
-    element_en = map_en.get(element_tr, "Air")
-    return DAILY_LINES_EN.get(element_en, ["Stay centered today."])[idx]
+    return DAILY_LINES_TR.get(element_tr, ["Bugün merkezde kal."])[idx]
 
-# ---- Ana analiz ----
-def analyze_data(name, dob, time, place, lang="tr"):
+def analyze_data(name, dob, time, place):
     d = dateparse.parse(dob).date()
     sign = sun_sign(d)
     element, modality = ELEMENTS.get(sign,""), MODALITY.get(sign,"")
@@ -148,64 +117,18 @@ def analyze_data(name, dob, time, place, lang="tr"):
     bio = biorhythm(d)
     cz = chinese_zodiac(d.year)
     ms = milestones(d)
-    day_tip = daily_horoscope(element, lang)
+    day_tip = daily_horoscope(element)
 
-    # Daha uzun & vurucu yorum
-    if lang == "tr":
-        astro_text = f"Güneş {sign} • Element {element} • Modalite {modality}. Bu karışım, karar alma biçimini ve dış dünyaya açılma hızını belirginleştirir."
-        num_text = f"Yaşam Yolu {nums['Yaşam Yolu']} uzun hikâyeni yönlendirir; Kader {nums['Kader']} dışarıdan nasıl algılandığını; Ruh {nums['Ruh']} içten gelen arzunu; Kişilik {nums['Kişilik']} ilk izlenimini renklendirir."
-        bio_text = f"Fiziksel {bio['Fiziksel']}% • Duygusal {bio['Duygusal']}% • Zihinsel {bio['Zihinsel']}%. Yüksek olan kanalı günün kritik işlerine ayır."
-        cz_text = f"{cz['Element']} {cz['Hayvan']}. Doğanın ritmiyle uyumlandığında fırsatlar daha görünür olur."
-        day_text = f"Günlük Burç Yorumu: {day_tip}"
-        sentient = (
-            f"{name}, {place} doğumlu; {sign} doğası sende cesaret ve {element.lower()} unsuru ile "
-            f"pratik sezgiyi birleştiriyor. Bugün ‘netlik→eylem’ zincirine odaklan: önce 1 net karar, "
-            f"ardından 20 dakikalık kesintisiz uygulama. Yorulduğunda kısa bir nefes, sonra devam. "
-            f"Ruhsal ritmin {max(bio, key=bio.get)} kanalında güçlü; bunu avantaja çevir."
-        )
-        recommendation = "Sentient diyor ki: Bugün tek cesur adım at — küçük ama tamamlanmış bir iş, büyük bir ivme yaratır."
-        return {
-            "lang":"tr",
-            "Astroloji": {"burc": sign, "element": element, "modalite": modality, "text": astro_text},
-            "Numeroloji": nums | {"text": num_text},
-            "Biyoritim": bio | {"text": bio_text},
-            "Yaş & Dönüm Noktaları": ms,
-            "Çin Burcu": cz | {"text": cz_text},
-            "Günlük": {"text": day_text},
-            "Yorum": sentient,
-            "Öneri": recommendation
-        }
-    else:
-        # EN
-        map_en = {"Ateş":"Fire","Toprak":"Earth","Hava":"Air","Su":"Water"}
-        element_en = map_en.get(element, element)
-        modality_en = {
-            "Öncü":"Cardinal","Sabit":"Fixed","Değişken":"Mutable"
-        }.get(modality, modality)
-        astro_text = f"Sun in {sign} • Element {element_en} • Modality {modality_en}. This blend shapes how you choose, start, and sustain momentum."
-        num_text = f"Life Path {nums['Yaşam Yolu']} guides your arc; Destiny {nums['Kader']} your outer role; Soul {nums['Ruh']} inner desire; Personality {nums['Kişilik']} first impression."
-        bio_text = f"Physical {bio['Fiziksel']}% • Emotional {bio['Duygusal']}% • Intellectual {bio['Zihinsel']}%. Allocate key tasks to your strongest channel."
-        cz_en = {"Hayvan":"Animal","Element":"Element"}
-        cz_text = f"{cz['Element']} {cz['Hayvan']}."
-        day_text = f"Daily Horoscope: {day_tip}"
-        sentient = (
-            f"{name} from {place}: your {sign} nature blends courage with {element_en.lower()} essence. "
-            f"Focus on the chain ‘clarity→action’: one crisp decision then 20 minutes of undistracted doing. "
-            f"Pause, breathe, resume. Your strongest channel today is {max(bio, key=bio.get)} — leverage it."
-        )
-        recommendation = "Sentient suggests: take one bold, finishable step — small done beats big pending."
-        return {
-            "lang":"en",
-            "Astrology": {"sign": sign, "element": element_en, "modality": modality_en, "text": astro_text},
-            "Numerology": {"Life Path": nums["Yaşam Yolu"], "Destiny": nums["Kader"], "Soul": nums["Ruh"], "Personality": nums["Kişilik"], "text": num_text},
-            "Biorhythm": {"Physical": bio["Fiziksel"], "Emotional": bio["Duygusal"], "Intellectual": bio["Zihinsel"], "text": bio_text},
-            "Age & Milestones": {"Age": ms["Yaş"], "Days": ms["Gün"], "Next10K": ms["Sonraki10K"], "text": f"Age: {ms['Yaş']} • Days: {ms['Gün']} • Next 10K day: {ms['Sonraki10K']}."},
-            "Chinese Zodiac": {"Animal": cz["Hayvan"], "Element": cz["Element"], "text": cz_text},
-            "Daily": {"text": day_text},
-            "Insight": sentient,
-            "Suggestion": recommendation
-        }
+    return {
+        "Astroloji": {"burc": sign, "element": element, "modalite": modality},
+        "Numeroloji": nums,
+        "Biyoritim": bio,
+        "Yaş & Dönüm Noktaları": ms,
+        "Çin Burcu": cz,
+        "Günlük": day_tip
+    }
 
+# ---- ROUTES ----
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -217,22 +140,15 @@ def api_analyze():
     dob   = data.get("dob")
     time  = data.get("time","00:00")
     place = data.get("place","Bilinmiyor")
-    lang  = data.get("lang","tr")
-    result = analyze_data(name, dob, time, place, lang)
+    result = analyze_data(name, dob, time, place)
     return jsonify({"ok":True, "data":result})
 
+# ---- ERROR HANDLER ----
+@app.errorhandler(404)
+def page_not_found(e):
+    return jsonify({"ok": False, "error": "404 - route not found"}), 404
+
+# ---- RUN ----
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-from flask import Flask, render_template
-
-app = Flask(__name__)
-
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-import os
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
