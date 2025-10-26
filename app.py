@@ -1,153 +1,116 @@
 from flask import Flask, render_template, request, jsonify
-from datetime import date, datetime, timedelta
-import math, re, hashlib
+from datetime import datetime
+import math, random
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
+app = Flask(__name__)
 
-# ---- Burç tarihleri (GÜNCEL) ----
-ZODIAC_SIGNS = [
-    ("Oğlak", (12, 22), (1, 19)),
-    ("Kova", (1, 20), (2, 18)),
-    ("Balık", (2, 19), (3, 20)),
-    ("Koç", (3, 21), (4, 19)),
-    ("Boğa", (4, 20), (5, 20)),
-    ("İkizler", (5, 21), (6, 20)),
-    ("Yengeç", (6, 21), (7, 22)),
-    ("Aslan", (7, 23), (8, 22)),
-    ("Başak", (8, 23), (9, 22)),
-    ("Terazi", (9, 23), (10, 22)),
-    ("Akrep", (10, 23), (11, 21)),
-    ("Yay", (11, 22), (12, 21))
-]
-
-ELEMENTS = {
-    "Koç": "Ateş", "Aslan": "Ateş", "Yay": "Ateş",
-    "Boğa": "Toprak", "Başak": "Toprak", "Oğlak": "Toprak",
-    "İkizler": "Hava", "Terazi": "Hava", "Kova": "Hava",
-    "Yengeç": "Su", "Akrep": "Su", "Balık": "Su"
-}
-
-MODALITY = {
-    "Koç": "Öncü", "Yengeç": "Öncü", "Terazi": "Öncü", "Oğlak": "Öncü",
-    "Boğa": "Sabit", "Aslan": "Sabit", "Akrep": "Sabit", "Kova": "Sabit",
-    "İkizler": "Değişken", "Başak": "Değişken", "Yay": "Değişken", "Balık": "Değişken"
-}
-
-# ---- Burç belirleme ----
-def sun_sign(birthdate):
-    m, d = birthdate.month, birthdate.day
-    for sign, start, end in ZODIAC_SIGNS:
-        sm, sd = start
-        em, ed = end
-        if (m == sm and d >= sd) or (m == em and d <= ed):
-            return sign
-    return "Oğlak"  # fallback
-
-# ---- Numeroloji ----
-LETTER_MAP = {ch: i % 9 if i % 9 != 0 else 9 for i, ch in enumerate("abcdefghijklmnopqrstuvwxyz", 1)}
-
-def number_from_name(name):
-    clean = re.sub(r"[^a-zA-Z]", "", name).lower()
-    total = sum(LETTER_MAP.get(c, 0) for c in clean)
-    while total > 9 and total not in (11, 22, 33):
-        total = sum(int(x) for x in str(total))
-    return total
-
-def life_path(d):
-    total = sum(int(x) for x in f"{d.year}{d.month:02d}{d.day:02d}")
-    while total > 9 and total not in (11, 22, 33):
-        total = sum(int(x) for x in str(total))
-    return total
-
-# ---- Biyoritim ----
-def biorhythm(born, target=None):
-    if target is None:
-        target = date.today()
-    days = (target - born).days
-    def cycle(period):
-        return round((math.sin(2 * math.pi * days / period) + 1) / 2 * 100)
-    return {
-        "Fiziksel": cycle(23),
-        "Duygusal": cycle(28),
-        "Zihinsel": cycle(33)
-    }
-
-# ---- Çin burcu ----
-def chinese_zodiac(year):
-    animals = ["Maymun", "Horoz", "Köpek", "Domuz", "Fare", "Öküz", "Kaplan", "Tavşan", "Ejderha", "Yılan", "At", "Keçi"]
-    elements = ["Metal", "Su", "Ahşap", "Ateş", "Toprak"]
-    return {
-        "Hayvan": animals[year % 12],
-        "Element": elements[((year - 4) % 10) // 2]
-    }
-
-# ---- Günlük burç mesajı ----
-DAILY_LINES = {
-    "Ateş": [
-        "Cesur ol, yeni başlangıç seni bekliyor.",
-        "Harekete geç, enerji senin yanında.",
-        "Tutkunu yönlendir, kalbin ne söylüyorsa o yoldan git."
-    ],
-    "Toprak": [
-        "Ayaklarını yere bas, planlarını somutlaştır.",
-        "Sabırlı ol, başarı emin adımlarla gelecek.",
-        "Bugün disiplin kazandırır, temelleri güçlendir."
-    ],
-    "Hava": [
-        "Yeni fikirler doğuyor, paylaşmaktan çekinme.",
-        "Zihnin açık, öğrenmeye hazır bir gün.",
-        "Sözlerin etkili, doğru kişiye doğru kelimeyi söyle."
-    ],
-    "Su": [
-        "Duygularını ifade et, seni özgürleştirecek.",
-        "Sezgine güven, kalbin doğruyu biliyor.",
-        "Bugün derin bir nefes al, duygusal denge seni bulacak."
+# ------------------ Yardımcı Fonksiyonlar ------------------ #
+def hesapla_burc(gun, ay):
+    burclar = [
+        ("Oğlak", (12, 22), (1, 19)),
+        ("Kova", (1, 20), (2, 18)),
+        ("Balık", (2, 19), (3, 20)),
+        ("Koç", (3, 21), (4, 19)),
+        ("Boğa", (4, 20), (5, 20)),
+        ("İkizler", (5, 21), (6, 20)),
+        ("Yengeç", (6, 21), (7, 22)),
+        ("Aslan", (7, 23), (8, 22)),
+        ("Başak", (8, 23), (9, 22)),
+        ("Terazi", (9, 23), (10, 22)),
+        ("Akrep", (10, 23), (11, 21)),
+        ("Yay", (11, 22), (12, 21)),
     ]
-}
+    for burc, (a1, g1), (a2, g2) in burclar:
+        if (ay == a1 and gun >= g1) or (ay == a2 and gun <= g2):
+            return burc
+    return "Oğlak"
 
-def daily_message(element):
-    seed = int(hashlib.md5(date.today().isoformat().encode()).hexdigest(), 16)
-    idx = seed % 3
-    return DAILY_LINES.get(element, ["Bugün merkezde kal."])[idx]
+def element(burc):
+    ates = ["Koç", "Aslan", "Yay"]
+    toprak = ["Boğa", "Başak", "Oğlak"]
+    hava = ["İkizler", "Terazi", "Kova"]
+    su = ["Yengeç", "Akrep", "Balık"]
+    if burc in ates: return "Ateş"
+    if burc in toprak: return "Toprak"
+    if burc in hava: return "Hava"
+    if burc in su: return "Su"
+    return "Bilinmiyor"
 
-# ---- Ana analiz ----
-def analyze_data(name, dob, time, place):
-    d = datetime.strptime(dob, "%Y-%m-%d").date()
-    sign = sun_sign(d)
-    element = ELEMENTS.get(sign, "")
-    modality = MODALITY.get(sign, "")
-    lp = life_path(d)
-    num = number_from_name(name)
-    bio = biorhythm(d)
-    cz = chinese_zodiac(d.year)
-    day_tip = daily_message(element)
+def biyoritim(birthdate):
+    days = (datetime.now().date() - birthdate).days
+    fiziksel = int((math.sin(2 * math.pi * days / 23) + 1) * 50)
+    duygusal = int((math.sin(2 * math.pi * days / 28) + 1) * 50)
+    zihinsel = int((math.sin(2 * math.pi * days / 33) + 1) * 50)
+    return {"Fiziksel": fiziksel, "Duygusal": duygusal, "Zihinsel": zihinsel}
 
-    dobly_comment = f"{name}, senin burcun **{sign}** ({element} elementi). Bugün {day_tip.lower()} Dobly diyor ki: 'Net bir hedef seç ve küçük ama kararlı adımlar at.'"
+def numeroloji_ad(isim):
+    toplam = sum(ord(c.lower()) - 96 for c in isim if c.isalpha())
+    while toplam > 9:
+        toplam = sum(int(x) for x in str(toplam))
+    return toplam
 
-    return {
-        "Burç": sign,
-        "Element": element,
-        "Modalite": modality,
-        "YaşamYolu": lp,
-        "Numeroloji": num,
-        "Biyoritim": bio,
-        "ÇinBurcu": cz,
-        "Dobly": dobly_comment
+def yas_donum(birthdate):
+    yas = datetime.now().year - birthdate.year
+    milestone = yas % 7
+    return f"{yas} yaşındasın. Şu anda {milestone}. enerji döngüsündesin."
+
+def cinsayisi(yil):
+    hayvanlar = ["Fare","Öküz","Kaplan","Tavşan","Ejderha","Yılan","At","Keçi","Maymun","Horoz","Köpek","Domuz"]
+    return hayvanlar[yil % 12]
+
+def dobly_mesaji(burc, element_):
+    mesajlar = {
+        "Ateş": f"{burc} — cesur ol, yeni başlangıç seni bekliyor!",
+        "Toprak": f"{burc} — sabırlı ol, istikrarlı ilerle!",
+        "Hava": f"{burc} — yaratıcı fikirlerini paylaş!",
+        "Su": f"{burc} — sezgilerine güven!"
     }
+    oneriler = {
+        "Ateş": "Net bir hedef seç ve küçük adımlarla ilerle.",
+        "Toprak": "Bugün plan yap ve disiplinden ödün verme.",
+        "Hava": "Yeni insanlarla iletişime geç.",
+        "Su": "Meditasyon veya doğa yürüyüşü sana iyi gelir."
+    }
+    return mesajlar.get(element_, ""), oneriler.get(element_, "")
 
+# ------------------ Rotalar ------------------ #
 @app.route("/")
-def home():
+def index():
     return render_template("index.html")
 
 @app.route("/api/analyze", methods=["POST"])
-def api_analyze():
-    data = request.get_json()
-    name = data.get("name", "Misafir")
-    dob = data.get("dob")
-    time = data.get("time", "00:00")
-    place = data.get("place", "Bilinmiyor")
-    result = analyze_data(name, dob, time, place)
-    return jsonify({"ok": True, "data": result})
+def analyze():
+    data = request.json
+    try:
+        name = data.get("name", "Anonim")
+        dob_str = data.get("dob")
+        birthdate = datetime.strptime(dob_str, "%Y-%m-%d").date()
+        gun, ay, yil = birthdate.day, birthdate.month, birthdate.year
+        burc = hesapla_burc(gun, ay)
+        element_ = element(burc)
+        bio = biyoritim(birthdate)
+        num = numeroloji_ad(name)
+        yas_dnm = yas_donum(birthdate)
+        cin = cinsayisi(yil)
+        mesaj, oner = dobly_mesaji(burc, element_)
+
+        result = {
+            "ok": True,
+            "data": {
+                "lang": data.get("lang", "tr"),
+                "Günlük": {"text": f"{element_} elementi: {burc} — {name}, bugün enerji akışın yüksek!"},
+                "Biyoritim": bio,
+                "Astroloji": {"text": f"{burc} burcu ({element_} elementi). Duygularına kulak ver."},
+                "Numeroloji": {"Yaşam Yolu": num, "Kader": num + 2, "Ruh": num + 3, "Kişilik": num + 4, "text": "İçsel dengen bu hafta güçleniyor."},
+                "Yaş & Dönüm Noktaları": {"text": yas_dnm},
+                "Çin Burcu": {"text": cin},
+                "Yorum": mesaj,
+                "Öneri": oner
+            }
+        }
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)})
 
 if __name__ == "__main__":
     app.run(debug=True)
