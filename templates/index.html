@@ -1,64 +1,77 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sentient Astro</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>Sentient Astro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <header>
-    <img src="{{ url_for('static', filename='sentient_logo.png') }}" class="logo" alt="Sentient Logo">
-    <h1>Sentient Astro</h1>
-  </header>
+    <header>
+        <img src="{{ url_for('static', filename='sentient_logo.png') }}" class="logo">
+        <h1>Sentient Astro</h1>
+    </header>
 
-  <main class="astro-container">
-    <section class="card">
-      <h2>Bilgilerini Gir</h2>
-      <input type="text" id="name" placeholder="İsim">
-      <input type="date" id="dob" placeholder="Doğum Tarihi">
-      <input type="time" id="time" placeholder="Doğum Saati">
-      <input type="text" id="place" placeholder="Doğum Yeri">
-      <button onclick="analyze()">Analizi Oluştur</button>
-    </section>
+    <main>
+        <section id="input-section">
+            <h2>Bilgilerini Gir</h2>
+            <div class="form-group">
+                <input type="text" id="name" placeholder="İsim">
+                <input type="date" id="dob">
+                <input type="time" id="time">
+                <input type="text" id="place" placeholder="Doğum Yeri">
+                <button onclick="analyze()">Analizi Oluştur</button>
+            </div>
+        </section>
 
-    <section class="card">
-      <h2>Günlük Burç Yorumu</h2>
-      <p id="daily">-</p>
-    </section>
+        <section id="results">
+            <div class="card">
+                <h3>Günlük Burç Yorumu</h3>
+                <p id="daily">-</p>
+            </div>
 
-    <section class="card">
-      <h2>Kişisel Enerji Grafiği</h2>
-      <p id="biorhythm">-</p>
-    </section>
+            <div class="card">
+                <h3>Kişisel Enerji Grafiği</h3>
+                <div id="biorhythm"></div>
+            </div>
 
-    <section class="card">
-      <h2>Dobly Yorumu 🐾</h2>
-      <img src="{{ url_for('static', filename='dobly.png') }}" class="dobly-img" alt="Dobly">
-      <p id="dobly">-</p>
-    </section>
-  </main>
+            <div class="card dobly">
+                <h3>Dobly Yorumu 🐾</h3>
+                <img src="{{ url_for('static', filename='dobly.png') }}" class="dobly-img">
+                <p id="dobly">-</p>
+            </div>
+        </section>
+    </main>
 
-  <script>
-    async function analyze() {
-      const name = document.getElementById("name").value;
-      const dob = document.getElementById("dob").value;
-      const time = document.getElementById("time").value;
-      const place = document.getElementById("place").value;
+    <footer>
+        <p>✨ Sentient Astro © 2025 • Analizler kişisel farkındalık içindir.</p>
+    </footer>
 
-      const res = await fetch("https://sentient-astro-final.onrender.com/api/analyze", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ name, dob, time, place, lang: "tr" })
-      });
-      
-      const data = await res.json();
-      if (data.ok) {
-        document.getElementById("daily").innerText = data.data.Daily.text;
-        document.getElementById("biorhythm").innerText = `Fiziksel: ${data.data.Biorhythm.physical}% | Duygusal: ${data.data.Biorhythm.emotional}% | Zihinsel: ${data.data.Biorhythm.mental}%`;
-        document.getElementById("dobly").innerText = data.data.Insight;
-      }
-    }
-  </script>
+    <script>
+        async function analyze() {
+            const data = {
+                name: document.getElementById("name").value,
+                dob: document.getElementById("dob").value,
+                time: document.getElementById("time").value,
+                place: document.getElementById("place").value
+            };
+
+            const res = await fetch("/api/analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            const out = await res.json();
+            if (!out.ok) return alert("Bir hata oluştu!");
+
+            const d = out.data;
+            document.getElementById("daily").innerText = d.Element + " elementi: " + d.Burç + " — " + d.Dobly;
+            document.getElementById("dobly").innerText = d.Dobly;
+            document.getElementById("biorhythm").innerHTML =
+                `<p>Fiziksel: ${d.Biyoritim.Fiziksel}%</p>
+                 <p>Duygusal: ${d.Biyoritim.Duygusal}%</p>
+                 <p>Zihinsel: ${d.Biyoritim.Zihinsel}%</p>`;
+        }
+    </script>
 </body>
 </html>
