@@ -1,84 +1,48 @@
-:root{
-  --bg:#0a0a0f;
-  --card:#12121a;
-  --muted:#a0a3ad;
-  --accent:#ff0fc7;
-  --rail:#262636;
+.sun-card {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:24px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  box-shadow:0 0 15px rgba(255,255,255,0.05);
+  text-align:center;
+  transition:0.5s;
 }
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{
-  background: radial-gradient(1000px 600px at 20% -10%, #20102a 0%, #0a0a0f 60%) no-repeat,
-             var(--bg);
-  color:#fff;
-  font: 16px/1.6 "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+.sun-card .emoji{
+  font-size:56px;
+  margin-right:16px;
 }
-
-.topbar{
-  display:flex;align-items:center;justify-content:center;
-  padding:14px 20px;border-bottom:1px solid #1d1d28;
-  position:sticky;top:0;background:rgba(10,10,15,.8);backdrop-filter: blur(6px);
+.sun-card h2{
+  margin:0;
+  font-size:28px;
 }
-.logo{font-weight:800;letter-spacing:.5px;color:#fff}
-.logo::before{content:"✨ ";color:var(--accent)}
-
-.container{max-width:1050px;margin:24px auto;padding:0 16px}
-.panel{
-  background: transparent;border:1px solid #272739;border-radius:14px;
-  padding:18px 16px;margin-bottom:18px;
-}
-h1{margin:0 0 4px;font-size:22px}
-.sub{color:var(--muted);margin:0 0 12px}
-
-.form{display:grid;grid-template-columns:1fr 160px 140px 1fr 140px 140px;gap:10px}
-.form input,.form select,.form button{
-  background:#141422;color:#fff;border:1px solid #2a2a3b;border-radius:10px;
-  padding:10px 12px;font-size:14px;outline:none;
-}
-.form button{
-  background:linear-gradient(90deg, #ff0fc7, #7b3ff2);
-  border:none;cursor:pointer;font-weight:700;letter-spacing:.2px;
-  transition: transform .08s ease;
-}
-.form button:disabled{opacity:.6;cursor:not-allowed}
-.form button:active{transform:scale(.98)}
-
-.grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
-}
-@media (max-width: 980px){ .grid{grid-template-columns:1fr 1fr} }
-@media (max-width: 680px){ 
-  .grid{grid-template-columns:1fr}
-  .form{grid-template-columns:1fr 1fr}
+.sun-card p{
+  margin:4px 0 0;
+  font-size:15px;
+  color:#ccc;
 }
 
-.card{
-  background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
-  border:1px solid #26263a;border-radius:16px;padding:16px 16px 12px;
-  box-shadow: 0 0 0 1px rgba(255,255,255,.02) inset;
+/* Element renkleri */
+.sun-card.fire {
+  border-color:#ff3f3f;
+  box-shadow:0 0 25px rgba(255,64,0,0.6);
 }
-.card h3{margin:0 0 10px;font-size:16px}
-.card h3::after{content:"";display:block;height:1px;background:#2a2a3b;margin-top:8px}
-
-.muted{color:var(--muted);margin:.3rem 0 0}
-
-.bar{margin:8px 0 10px}
-.bar-top{display:flex;justify-content:space-between;color:#e3e3ee;font-size:13px;margin-bottom:6px}
-.bar-rail{
-  width:100%;height:10px;border-radius:999px;background:var(--rail);
-  outline:1px solid rgba(255,255,255,.03);
+.sun-card.water {
+  border-color:#4faaff;
+  box-shadow:0 0 25px rgba(80,150,255,0.5);
 }
-.bar-fill{
-  height:100%;border-radius:999px;
-  background:linear-gradient(90deg,#ff0fc7,#7b3ff2);
-  box-shadow:0 0 10px rgba(255,15,199,.35);
+.sun-card.air {
+  border-color:#79faff;
+  box-shadow:0 0 25px rgba(120,240,255,0.5);
 }
-
-.callout{
-  margin-top:10px;padding:10px 12px;border:1px dashed #6f46f7;border-radius:12px;
-  background:rgba(127,70,247,.08);color:#e9ddff
+.sun-card.earth {
+  border-color:#4fff7b;
+  box-shadow:0 0 25px rgba(80,255,120,0.5);
 }
-
-.foot{
-  margin:24px 0 40px;text-align:center;color:var(--muted);font-size:13px
+.sun-card.neutral {
+  border-color:#aaa;
+  box-shadow:0 0 25px rgba(255,255,255,0.3);
 }
