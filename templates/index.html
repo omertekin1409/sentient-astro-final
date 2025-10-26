@@ -3,64 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sentient Astro Portal</title>
+  <title>Sentient Astro</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <header>
-    <img src="{{ url_for('static', filename='sentient_logo.png') }}" alt="Sentient Logo" class="logo">
+    <img src="{{ url_for('static', filename='sentient_logo.png') }}" class="logo" alt="Sentient Logo">
     <h1>Sentient Astro</h1>
   </header>
 
-  <section class="astro-container">
-    <div class="card input-card">
+  <main class="astro-container">
+    <section class="card">
       <h2>Bilgilerini Gir</h2>
-      <input id="name" placeholder="İsim" />
-      <input id="dob" type="date" />
-      <input id="time" type="time" />
-      <input id="place" placeholder="Doğum Yeri" />
-      <button id="analyze">Analizi Oluştur</button>
-    </div>
+      <input type="text" id="name" placeholder="İsim">
+      <input type="date" id="dob" placeholder="Doğum Tarihi">
+      <input type="time" id="time" placeholder="Doğum Saati">
+      <input type="text" id="place" placeholder="Doğum Yeri">
+      <button onclick="analyze()">Analizi Oluştur</button>
+    </section>
 
-    <div class="card">
+    <section class="card">
       <h2>Günlük Burç Yorumu</h2>
-      <p id="day-tip">-</p>
-    </div>
+      <p id="daily">-</p>
+    </section>
 
-    <div class="card">
+    <section class="card">
       <h2>Kişisel Enerji Grafiği</h2>
-      <div id="bio"></div>
-    </div>
+      <p id="biorhythm">-</p>
+    </section>
 
-    <div class="card">
+    <section class="card">
       <h2>Dobly Yorumu 🐾</h2>
-      <img src="{{ url_for('static', filename='dobly.png') }}" class="dobly-img" />
-      <p id="dobly-text">-</p>
-    </div>
-  </section>
+      <img src="{{ url_for('static', filename='dobly.png') }}" class="dobly-img" alt="Dobly">
+      <p id="dobly">-</p>
+    </section>
+  </main>
 
   <script>
-    document.getElementById("analyze").addEventListener("click", async () => {
-      const data = {
-        name: document.getElementById("name").value,
-        dob: document.getElementById("dob").value,
-        time: document.getElementById("time").value,
-        place: document.getElementById("place").value,
-        lang: "tr"
-      };
+    async function analyze() {
+      const name = document.getElementById("name").value;
+      const dob = document.getElementById("dob").value;
+      const time = document.getElementById("time").value;
+      const place = document.getElementById("place").value;
+
       const res = await fetch("https://sentient-astro-final.onrender.com/api/analyze", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(data)
+        body: JSON.stringify({ name, dob, time, place, lang: "tr" })
       });
-      const out = await res.json();
-      if(out.ok){
-        document.getElementById("day-tip").innerText = out.data.Yorum;
-        document.getElementById("bio").innerText =
-          `Fiziksel: ${out.data.Biyoritim.Fiziksel}% | Duygusal: ${out.data.Biyoritim.Duygusal}% | Zihinsel: ${out.data.Biyoritim.Zihinsel}%`;
-        document.getElementById("dobly-text").innerText = out.data.Dobly;
+      
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById("daily").innerText = data.data.Daily.text;
+        document.getElementById("biorhythm").innerText = `Fiziksel: ${data.data.Biorhythm.physical}% | Duygusal: ${data.data.Biorhythm.emotional}% | Zihinsel: ${data.data.Biorhythm.mental}%`;
+        document.getElementById("dobly").innerText = data.data.Insight;
       }
-    });
+    }
   </script>
 </body>
 </html>
