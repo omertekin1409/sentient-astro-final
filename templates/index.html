@@ -1,80 +1,99 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>Sentient Astro Portal</title>
-    <style>
-        body {
-            background-color: #000;
-            color: #fff;
-            font-family: 'Segoe UI', sans-serif;
-            text-align: center;
-            padding-top: 80px;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentient Astro Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>
+    async function analyze() {
+      const name = document.getElementById("name").value.trim();
+      const dob = document.getElementById("dob").value;
+      const time = document.getElementById("time").value;
+      const place = document.getElementById("place").value.trim();
+      const lang = document.getElementById("lang").value;
+
+      if (!dob || !name) {
+        alert("Lütfen isim ve doğum tarihini giriniz 🌙");
+        return;
+      }
+
+      const data = { name, dob, time, place, lang };
+
+      // 🔥 Mutlak URL kullanıyoruz (Render veya local farketmez)
+      const apiUrl = window.location.hostname.includes("render.com")
+        ? "https://sentient-astro-final.onrender.com/api/analyze"
+        : "http://127.0.0.1:5000/api/analyze";
+
+      document.getElementById("result").innerHTML = "<p>Analiz yapılıyor... 🔮</p>";
+
+      try {
+        const res = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        const json = await res.json();
+
+        if (!json.ok) {
+          document.getElementById("result").innerHTML = `<p>⚠️ Hata: ${json.error || "API bulunamadı"}</p>`;
+          return;
         }
-        input, select, button {
-            margin: 8px;
-            padding: 8px;
-            border-radius: 6px;
-            border: none;
-            font-size: 15px;
-        }
-        button {
-            background-color: #ff0080;
-            color: white;
-            cursor: pointer;
-        }
-        #result {
-            margin-top: 30px;
-            text-align: left;
-            display: inline-block;
-            max-width: 600px;
-        }
-    </style>
+
+        const d = json.data;
+        document.getElementById("result").innerHTML = `
+          <div class="result-card">
+            <h2>🌞 Astroloji</h2>
+            <p><b>Burç:</b> ${d["Astroloji"].burc} | 
+               <b>Element:</b> ${d["Astroloji"].element} | 
+               <b>Modalite:</b> ${d["Astroloji"].modalite}</p>
+            <hr>
+            <h2>🔢 Numeroloji</h2>
+            <p>Yaşam Yolu: ${d["Numeroloji"]["Yaşam Yolu"]} |
+               Kader: ${d["Numeroloji"]["Kader"]} |
+               Ruh: ${d["Numeroloji"]["Ruh"]} |
+               Kişilik: ${d["Numeroloji"]["Kişilik"]}</p>
+            <hr>
+            <h2>⚙️ Biyoritim</h2>
+            <p>Fiziksel: ${d["Biyoritim"]["Fiziksel"]}% |
+               Duygusal: ${d["Biyoritim"]["Duygusal"]}% |
+               Zihinsel: ${d["Biyoritim"]["Zihinsel"]}%</p>
+            <hr>
+            <h2>📆 Dönüm Noktaları</h2>
+            <p>Yaş: ${d["Yaş & Dönüm Noktaları"]["Yaş"]} |
+               Gün: ${d["Yaş & Dönüm Noktaları"]["Gün"]} |
+               Sonraki 10K Gün: ${d["Yaş & Dönüm Noktaları"]["Sonraki10K"]}</p>
+            <hr>
+            <h2>🐉 Çin Burcu</h2>
+            <p>${d["Çin Burcu"]["Element"]} ${d["Çin Burcu"]["Hayvan"]}</p>
+            <hr>
+            <h2>🪄 Günlük Rehber</h2>
+            <p>${d["Günlük"]}</p>
+          </div>
+        `;
+      } catch (err) {
+        document.getElementById("result").innerHTML = `<p>🚨 Bağlantı hatası: ${err.message}</p>`;
+      }
+    }
+  </script>
 </head>
+
 <body>
-    <h1>🚀 Sentient Astro Portal</h1>
-    <p>✨ Kişisel astrolojik analizini oluşturmak için bilgilerini gir:</p>
+  <h1>🌌 Sentient Astro Portal</h1>
+  <p>Kişisel astrolojik analizini oluşturmak için bilgilerini gir:</p>
 
-    <div>
-        <input id="name" placeholder="İsim">
-        <input id="dob" type="date">
-        <input id="time" type="time">
-        <input id="place" placeholder="Doğum yeri">
-        <select id="lang">
-            <option value="tr">Türkçe</option>
-            <option value="en">English</option>
-        </select>
-        <button onclick="analyze()">Analiz Et</button>
-    </div>
+  <div class="form-container">
+    <input type="text" id="name" placeholder="İsim Soyisim">
+    <input type="date" id="dob">
+    <input type="time" id="time" value="06:00">
+    <input type="text" id="place" placeholder="Doğum Yeri (örn: Denizli)">
+    <select id="lang">
+      <option value="tr" selected>Türkçe</option>
+      <option value="en">English</option>
+    </select>
+    <button onclick="analyze()">Analiz Et 🔮</button>
+  </div>
 
-    <div id="result"></div>
-
-    <script>
-        async function analyze() {
-            const data = {
-                name: document.getElementById('name').value,
-                dob: document.getElementById('dob').value,
-                time: document.getElementById('time').value,
-                place: document.getElementById('place').value,
-                lang: document.getElementById('lang').value
-            };
-
-            const res = await fetch('/api/analyze', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const json = await res.json();
-
-            if (json.ok) {
-                document.getElementById('result').innerHTML = `
-                    <h3>🔮 Analiz Sonucu</h3>
-                    <pre>${JSON.stringify(json.data, null, 2)}</pre>
-                `;
-            } else {
-                document.getElementById('result').innerHTML = "<p>Bir hata oluştu 😔</p>";
-            }
-        }
-    </script>
+  <div id="result"></div>
 </body>
 </html>
