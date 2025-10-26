@@ -1,106 +1,159 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentient Astro — Energy Edition</title>
+<link rel="icon" href="/static/sentient_logo.png">
+<style>
+body{background:#0a0c16;color:#fff;font-family:'Poppins',sans-serif;margin:0;overflow-x:hidden}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:#11121a;border-bottom:2px solid #ff99cc;position:sticky;top:0;z-index:5}
+header .left{display:flex;align-items:center;gap:10px}
+header h1{color:#ff99cc;font-size:22px;margin:0}
+header .right{display:flex;align-items:center;gap:10px}
+.flag{cursor:pointer;width:28px;border-radius:50%;border:1px solid #ff99cc}
+.logo{height:40px}
+
+main{max-width:1100px;margin:26px auto;padding:18px;background:#121320;border:1px solid #ff99cc;border-radius:16px;box-shadow:0 0 15px rgba(255,153,200,0.2)}
+label{display:block;margin-top:8px}
+input{width:100%;padding:10px;margin-top:4px;background:#1b1b2a;color:white;border:1px solid #ff99cc;border-radius:8px}
+button{margin-top:12px;background:#ff99cc;color:#0a0c16;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer}
+button:hover{background:#ff6fb4}
+
+.grid{display:grid;gap:14px;grid-template-columns:repeat(3,1fr)}
+.card{background:#17182a;border:1px solid #ff99cc;border-radius:12px;padding:14px}
+.subtitle{color:#dcb9c9}
+.bar{height:12px;border-radius:8px;background:linear-gradient(90deg,#27283b,#27283b);overflow:hidden;border:1px solid #444;margin-top:8px}
+.bar>span{display:block;height:100%;background:linear-gradient(90deg,#6efacc,#22c1c3);}
+.dobly-wrap{text-align:center}
+.dobly-img{margin-top:10px;max-width:160px;border-radius:12px;border:1px solid #ff99cc;background:#fff}
+
+/* Para düşüş efekti */
+.money{position:fixed;top:-20px;font-size:20px;color:#00ffb3;pointer-events:none;animation:fall 2.2s linear forwards}
+@keyframes fall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+
+<body onclick="rainMoney(event)">
+<header>
+  <div class="left">
+    <h1>Sentient Astro</h1>
+  </div>
+  <div class="right">
+    <img src="/static/sentient_logo.png" class="logo" alt="Sentient">
+    <img src="https://flagcdn.com/w20/tr.png" class="flag" onclick="setLang('tr')" title="Türkçe">
+    <img src="https://flagcdn.com/w20/us.png" class="flag" onclick="setLang('en')" title="English">
+  </div>
+</header>
+
+<main>
+  <form onsubmit="return analyze(event)" id="form">
+    <div class="grid">
+      <div class="card">
+        <h3 id="f_title">Bilgilerini Gir</h3>
+        <label id="lbl_name">İsim</label>
+        <input name="name" required>
+        <label id="lbl_dob">Doğum Tarihi</label>
+        <input type="date" name="dob" required>
+        <label id="lbl_time">Doğum Saati</label>
+        <input type="time" name="time">
+        <label id="lbl_place">Doğum Yeri</label>
+        <input name="place" placeholder="örn: Denizli">
+        <button type="submit" id="btn_gen">Analizi Oluştur</button>
+      </div>
+      <div class="card" id="dailyCard"><h3>Günlük Burç Yorumu</h3><p class="subtitle">—</p></div>
+      <div class="card" id="energyCard">
+        <h3>Kişisel Enerji Grafiği</h3>
+        <div class="subtitle">Fiziksel / Duygusal / Zihinsel</div>
+        <div class="bar"><span id="barP" style="width:0%"></span></div><div class="subtitle" id="txtP">0%</div>
+        <div class="bar"><span id="barE" style="width:0%"></span></div><div class="subtitle" id="txtE">0%</div>
+        <div class="bar"><span id="barI" style="width:0%"></span></div><div class="subtitle" id="txtI">0%</div>
+      </div>
+    </div>
+  </form>
+
+  <div class="grid" style="margin-top:14px">
+    <div class="card" id="astro"><h3>Astroloji</h3><p class="subtitle">—</p></div>
+    <div class="card" id="num"><h3>Numeroloji</h3><p class="subtitle">—</p></div>
+    <div class="card" id="age"><h3>Yaş & Dönüm Noktaları</h3><p class="subtitle">—</p></div>
+  </div>
+
+  <div class="grid" style="margin-top:14px">
+    <div class="card" id="cz"><h3>Çin Burcu</h3><p class="subtitle">—</p></div>
+    <div class="card dobly-wrap" id="sentient">
+      <h3>Sentient (Dobly) Yorumu</h3>
+      <img src="/static/dobly.png" class="dobly-img" alt="Dobly">
+      <p class="subtitle" id="sentientText">—</p>
+      <p class="subtitle" id="sentientSug"><b>—</b></p>
+    </div>
+    <div class="card"><h3>Not</h3><p class="subtitle">Analizler kişisel farkındalık içindir.</p></div>
+  </div>
+</main>
+
+<footer style="text-align:center;color:#888;padding:20px;">Powered by <b>Sentient Cognitive AI</b> — Energy Edition</footer>
+
 <script>
-function apiBase() {
-  return (location.hostname.includes("render.com"))
-    ? "https://sentient-astro-final.onrender.com"
-    : "http://127.0.0.1:5000";
+let currentLang='tr';
+function setLang(l){
+  currentLang=l;document.documentElement.lang=l;
+  const t={
+    tr:{f_title:"Bilgilerini Gir",lbl_name:"İsim",lbl_dob:"Doğum Tarihi",lbl_time:"Doğum Saati",lbl_place:"Doğum Yeri",btn_gen:"Analizi Oluştur",daily:"Günlük Burç Yorumu",energy:"Kişisel Enerji Grafiği",astro:"Astroloji",num:"Numeroloji",age:"Yaş & Dönüm Noktaları",cz:"Çin Burcu",sentient:"Sentient (Dobly) Yorumu"},
+    en:{f_title:"Enter Your Details",lbl_name:"Name",lbl_dob:"Date of Birth",lbl_time:"Birth Time",lbl_place:"Birth Place",btn_gen:"Generate Analysis",daily:"Daily Horoscope",energy:"Personal Energy Graph",astro:"Astrology",num:"Numerology",age:"Age & Milestones",cz:"Chinese Zodiac",sentient:"Sentient (Dobly) Insight"}
+  }[l];
+  document.getElementById('f_title').innerText=t.f_title;
+  document.getElementById('lbl_name').innerText=t.lbl_name;
+  document.getElementById('lbl_dob').innerText=t.lbl_dob;
+  document.getElementById('lbl_time').innerText=t.lbl_time;
+  document.getElementById('lbl_place').innerText=t.lbl_place;
+  document.getElementById('btn_gen').innerText=t.btn_gen;
+  document.getElementById('dailyCard').querySelector('h3').innerText=t.daily;
+  document.getElementById('energyCard').querySelector('h3').innerText=t.energy;
+  document.getElementById('astro').querySelector('h3').innerText=t.astro;
+  document.getElementById('num').querySelector('h3').innerText=t.num;
+  document.getElementById('age').querySelector('h3').innerText=t.age;
+  document.getElementById('cz').querySelector('h3').innerText=t.cz;
+  document.getElementById('sentient').querySelector('h3').innerText=t.sentient;
 }
 
-function elementColor(element) {
-  switch (element) {
-    case "Ateş": return "fire";
-    case "Toprak": return "earth";
-    case "Hava": return "air";
-    case "Su": return "water";
-    default: return "neutral";
+async function analyze(e){
+  e.preventDefault();
+  const f=new FormData(e.target);
+  const data=Object.fromEntries(f.entries());
+  data.lang=currentLang;
+  const r=await fetch("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
+  const j=await r.json();if(!j.ok)return alert("Hata");
+  const d=j.data;
+
+  const astro=d.lang==='tr'?d["Astroloji"]:d["Astrology"];
+  document.getElementById('astro').innerHTML=`<h3>${d.lang==='tr'?'Astroloji':'Astrology'}</h3><div class="subtitle">${astro.text}</div>`;
+  if(d.lang==='tr'){const n=d["Numeroloji"];
+    document.getElementById('num').innerHTML=`<h3>Numeroloji</h3><div class="subtitle">Yaşam Yolu ${n["Yaşam Yolu"]} • Kader ${n["Kader"]} • Ruh ${n["Ruh"]} • Kişilik ${n["Kişilik"]}</div><p class="subtitle">${n.text}</p>`;
+    document.getElementById('age').innerHTML=`<h3>Yaş & Dönüm Noktaları</h3><div class="subtitle">${d["Yaş & Dönüm Noktaları"].text}</div>`;
+    document.getElementById('cz').innerHTML=`<h3>Çin Burcu</h3><div class="subtitle">${d["Çin Burcu"].text}</div>`;
+    document.getElementById('sentientText').textContent=d["Yorum"];
+    document.getElementById('sentientSug').innerHTML=`<b>${d["Öneri"]}</b>`;
+  } else {
+    const n=d["Numerology"];
+    document.getElementById('num').innerHTML=`<h3>Numerology</h3><div class="subtitle">Life Path ${n["Life Path"]} • Destiny ${n["Destiny"]} • Soul ${n["Soul"]} • Personality ${n["Personality"]}</div><p class="subtitle">${n.text}</p>`;
+    document.getElementById('age').innerHTML=`<h3>Age & Milestones</h3><div class="subtitle">${d["Age & Milestones"].text}</div>`;
+    document.getElementById('cz').innerHTML=`<h3>Chinese Zodiac</h3><div class="subtitle">${d["Chinese Zodiac"].text}</div>`;
+    document.getElementById('sentientText').textContent=d["Insight"];
+    document.getElementById('sentientSug').innerHTML=`<b>${d["Suggestion"]}</b>`;
   }
+  const b=d.lang==='tr'?d["Biyoritim"]:d["Biorhythm"];
+  document.getElementById('barP').style.width=b.Fiziksel+"%";document.getElementById('txtP').innerText=b.Fiziksel+"%";
+  document.getElementById('barE').style.width=b.Duygusal+"%";document.getElementById('txtE').innerText=b.Duygusal+"%";
+  document.getElementById('barI').style.width=b.Zihinsel+"%";document.getElementById('txtI').innerText=b.Zihinsel+"%";
 }
 
-function sunCardHTML(sign, element, modality) {
-  const cls = elementColor(element);
-  const icons = {
-    "Koç":"♈", "Boğa":"♉", "İkizler":"♊", "Yengeç":"♋", "Aslan":"♌", "Başak":"♍",
-    "Terazi":"♎", "Akrep":"♏", "Yay":"♐", "Oğlak":"♑", "Kova":"♒", "Balık":"♓"
-  };
-  return `
-    <div class="sun-card ${cls}">
-      <div class="emoji">${icons[sign] || "☀️"}</div>
-      <div class="text">
-        <h2>${sign}</h2>
-        <p>${element} Elementi • ${modality} Burcu</p>
-      </div>
-    </div>`;
-}
-
-async function analyze() {
-  const name = document.getElementById("name").value.trim();
-  const dob  = document.getElementById("dob").value;
-  const time = document.getElementById("time").value;
-  const place= document.getElementById("place").value.trim();
-  const lang = document.getElementById("lang").value;
-
-  if (!name || !dob) {
-    alert("İsim ve doğum tarihini girmen gerekiyor.");
-    return;
-  }
-
-  const payload = { name, dob, time, place, lang };
-  const cards = document.getElementById("cards");
-  cards.innerHTML = `<p>Hesaplanıyor... 🔮</p>`;
-
-  try {
-    const r = await fetch(`${apiBase()}/api/analyze`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const j = await r.json();
-    if (!j.ok) throw new Error("API hatası");
-    const d = j.data;
-
-    const astro = d["Astroloji"];
-    const sunCard = sunCardHTML(astro.burc, astro.element, astro.modalite);
-
-    // Eski kartları koruyarak, en üste bu kartı koy
-    cards.innerHTML = `
-      ${sunCard}
-      <div class="result-card">
-        <h2>🌞 Astroloji</h2>
-        <p><b>Burç:</b> ${astro.burc} | <b>Element:</b> ${astro.element} | <b>Modalite:</b> ${astro.modalite}</p>
-        <p>${astro.text}</p>
-      </div>
-      <div class="result-card">
-        <h2>🔢 Numeroloji</h2>
-        <p>Yaşam Yolu: ${d["Numeroloji"]["Yaşam Yolu"]} |
-        Kader: ${d["Numeroloji"]["Kader"]} |
-        Ruh: ${d["Numeroloji"]["Ruh"]} |
-        Kişilik: ${d["Numeroloji"]["Kişilik"]}</p>
-      </div>
-      <div class="result-card">
-        <h2>⚙️ Biyoritim</h2>
-        <p>Fiziksel: ${d["Biyoritim"]["Fiziksel"]}% |
-        Duygusal: ${d["Biyoritim"]["Duygusal"]}% |
-        Zihinsel: ${d["Biyoritim"]["Zihinsel"]}%</p>
-      </div>
-      <div class="result-card">
-        <h2>📆 Dönüm Noktaları</h2>
-        <p>${d["Yaş & Dönüm Noktaları"]["text"]}</p>
-      </div>
-      <div class="result-card">
-        <h2>🐉 Çin Burcu</h2>
-        <p>${d["Çin Burcu"]["text"]}</p>
-      </div>
-      <div class="result-card">
-        <h2>🪄 Günlük Rehber</h2>
-        <p>${d["Günlük"]["text"]}</p>
-      </div>
-      <div class="result-card">
-        <h2>💡 Sentient Yorumu</h2>
-        <p>${d["Yorum"]}</p>
-        <p class="callout">${d["Öneri"]}</p>
-      </div>
-    `;
-  } catch (err) {
-    cards.innerHTML = `<p>🚨 Hata: ${err.message}</p>`;
+function rainMoney(e){
+  for(let i=0;i<4;i++){
+    const m=document.createElement('div');m.textContent='$';m.className='money';
+    m.style.left=(e.clientX+Math.random()*120-60)+'px';
+    m.style.color=['#5ef7c1','#9bf6ff','#b2f7ef','#a0ffe6'][Math.floor(Math.random()*4)];
+    document.body.appendChild(m);setTimeout(()=>m.remove(),2200);
   }
 }
 </script>
+</body>
+</html>
