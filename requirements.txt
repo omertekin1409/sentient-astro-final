@@ -1,5 +1,6 @@
 flask==3.0.0
-pillow==10.4.0
 python-dateutil
+pillow
 gunicorn
 waitress
+pyswisseph
