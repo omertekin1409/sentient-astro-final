@@ -1,12 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Sentient Astro</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Sentient Astro Portal</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            padding-top: 80px;
+        }
+        input, select, button {
+            margin: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            border: none;
+            font-size: 15px;
+        }
+        button {
+            background-color: #ff0080;
+            color: white;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 30px;
+            text-align: left;
+            display: inline-block;
+            max-width: 600px;
+        }
+    </style>
 </head>
 <body>
-    <h1>🚀 Sentient Astro is Live!</h1>
-    <p>Welcome to your AI Portal 🪐</p>
+    <h1>🚀 Sentient Astro Portal</h1>
+    <p>✨ Kişisel astrolojik analizini oluşturmak için bilgilerini gir:</p>
+
+    <div>
+        <input id="name" placeholder="İsim">
+        <input id="dob" type="date">
+        <input id="time" type="time">
+        <input id="place" placeholder="Doğum yeri">
+        <select id="lang">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+        </select>
+        <button onclick="analyze()">Analiz Et</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        async function analyze() {
+            const data = {
+                name: document.getElementById('name').value,
+                dob: document.getElementById('dob').value,
+                time: document.getElementById('time').value,
+                place: document.getElementById('place').value,
+                lang: document.getElementById('lang').value
+            };
+
+            const res = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+
+            if (json.ok) {
+                document.getElementById('result').innerHTML = `
+                    <h3>🔮 Analiz Sonucu</h3>
+                    <pre>${JSON.stringify(json.data, null, 2)}</pre>
+                `;
+            } else {
+                document.getElementById('result').innerHTML = "<p>Bir hata oluştu 😔</p>";
+            }
+        }
+    </script>
 </body>
 </html>
