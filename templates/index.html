@@ -2,98 +2,147 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sentient Astro Portal</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">✨ Sentient Astro</div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <h1>🔮 Kişisel Astroloji Analizi</h1>
+      <p class="sub">Bilgilerini gir, “Analiz Et”e tıkla. Sonuçlar aşağıda kartlarda görünür.</p>
+
+      <div class="form">
+        <input id="name" type="text" placeholder="İsim Soyisim" />
+        <input id="dob" type="date" />
+        <input id="time" type="time" value="06:00" />
+        <input id="place" type="text" placeholder="Doğum Yeri (örn: Denizli)" />
+        <select id="lang">
+          <option value="tr" selected>Türkçe</option>
+          <option value="en">English</option>
+        </select>
+        <button id="go">Analiz Et 🔮</button>
+      </div>
+    </section>
+
+    <section id="cards" class="grid">
+      <!-- Sonuç kartları buraya basılır -->
+    </section>
+  </main>
+
+  <footer class="foot">© Sentient Astro</footer>
+
   <script>
+    function apiBase() {
+      // Render’da canlı alan adı kullan; lokalde 127.0.0.1
+      return (location.hostname.includes("render.com"))
+        ? "https://sentient-astro-final.onrender.com"
+        : "http://127.0.0.1:5000";
+    }
+
+    function barHTML(label, value) {
+      value = Math.max(0, Math.min(100, Number(value)||0));
+      return `
+        <div class="bar">
+          <div class="bar-top">
+            <span>${label}</span><span>${value}%</span>
+          </div>
+          <div class="bar-rail"><div class="bar-fill" style="width:${value}%"></div></div>
+        </div>`;
+    }
+
+    function cardHTML(title, body) {
+      return `<div class="card"><h3>${title}</h3>${body}</div>`;
+    }
+
     async function analyze() {
       const name = document.getElementById("name").value.trim();
-      const dob = document.getElementById("dob").value;
+      const dob  = document.getElementById("dob").value;
       const time = document.getElementById("time").value;
-      const place = document.getElementById("place").value.trim();
+      const place= document.getElementById("place").value.trim();
       const lang = document.getElementById("lang").value;
 
-      if (!dob || !name) {
-        alert("Lütfen isim ve doğum tarihini giriniz 🌙");
+      if (!name || !dob) {
+        alert("İsim ve doğum tarihini girmen gerekiyor.");
         return;
       }
 
-      const data = { name, dob, time, place, lang };
-
-      // 🔥 Mutlak URL kullanıyoruz (Render veya local farketmez)
-      const apiUrl = window.location.hostname.includes("render.com")
-        ? "https://sentient-astro-final.onrender.com/api/analyze"
-        : "http://127.0.0.1:5000/api/analyze";
-
-      document.getElementById("result").innerHTML = "<p>Analiz yapılıyor... 🔮</p>";
+      const payload = { name, dob, time, place, lang };
+      const btn = document.getElementById("go");
+      const cards = document.getElementById("cards");
+      btn.disabled = true;
+      cards.innerHTML = cardHTML("⏳ Analiz", "<p>Hesaplanıyor...</p>");
 
       try {
-        const res = await fetch(apiUrl, {
+        const r = await fetch(`${apiBase()}/api/analyze`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
+          body: JSON.stringify(payload)
         });
-        const json = await res.json();
+        const j = await r.json();
 
-        if (!json.ok) {
-          document.getElementById("result").innerHTML = `<p>⚠️ Hata: ${json.error || "API bulunamadı"}</p>`;
-          return;
-        }
+        if (!j.ok) throw new Error("API beklenmedik yanıt verdi.");
 
-        const d = json.data;
-        document.getElementById("result").innerHTML = `
-          <div class="result-card">
-            <h2>🌞 Astroloji</h2>
-            <p><b>Burç:</b> ${d["Astroloji"].burc} | 
-               <b>Element:</b> ${d["Astroloji"].element} | 
-               <b>Modalite:</b> ${d["Astroloji"].modalite}</p>
-            <hr>
-            <h2>🔢 Numeroloji</h2>
-            <p>Yaşam Yolu: ${d["Numeroloji"]["Yaşam Yolu"]} |
-               Kader: ${d["Numeroloji"]["Kader"]} |
-               Ruh: ${d["Numeroloji"]["Ruh"]} |
-               Kişilik: ${d["Numeroloji"]["Kişilik"]}</p>
-            <hr>
-            <h2>⚙️ Biyoritim</h2>
-            <p>Fiziksel: ${d["Biyoritim"]["Fiziksel"]}% |
-               Duygusal: ${d["Biyoritim"]["Duygusal"]}% |
-               Zihinsel: ${d["Biyoritim"]["Zihinsel"]}%</p>
-            <hr>
-            <h2>📆 Dönüm Noktaları</h2>
-            <p>Yaş: ${d["Yaş & Dönüm Noktaları"]["Yaş"]} |
-               Gün: ${d["Yaş & Dönüm Noktaları"]["Gün"]} |
-               Sonraki 10K Gün: ${d["Yaş & Dönüm Noktaları"]["Sonraki10K"]}</p>
-            <hr>
-            <h2>🐉 Çin Burcu</h2>
-            <p>${d["Çin Burcu"]["Element"]} ${d["Çin Burcu"]["Hayvan"]}</p>
-            <hr>
-            <h2>🪄 Günlük Rehber</h2>
-            <p>${d["Günlük"]}</p>
-          </div>
-        `;
-      } catch (err) {
-        document.getElementById("result").innerHTML = `<p>🚨 Bağlantı hatası: ${err.message}</p>`;
+        const d = j.data;
+
+        // ---- Kartlar
+        const astro = d.lang === "tr"
+          ? `<p><b>Burç:</b> ${d["Astroloji"].burc} &nbsp;|&nbsp; <b>Element:</b> ${d["Astroloji"].element} &nbsp;|&nbsp; <b>Modalite:</b> ${d["Astroloji"].modalite}</p><p class="muted">${d["Astroloji"].text}</p>`
+          : `<p><b>Sign:</b> ${d["Astrology"].sign} &nbsp;|&nbsp; <b>Element:</b> ${d["Astrology"].element} &nbsp;|&nbsp; <b>Modality:</b> ${d["Astrology"].modality}</p><p class="muted">${d["Astrology"].text}</p>`;
+
+        const num = d.lang === "tr"
+          ? `<p>Yaşam Yolu: ${d["Numeroloji"]["Yaşam Yolu"]} • Kader: ${d["Numeroloji"]["Kader"]} • Ruh: ${d["Numeroloji"]["Ruh"]} • Kişilik: ${d["Numeroloji"]["Kişilik"]}</p><p class="muted">${d["Numeroloji"].text}</p>`
+          : `<p>Life Path: ${d["Numerology"]["Life Path"]} • Destiny: ${d["Numerology"]["Destiny"]} • Soul: ${d["Numerology"]["Soul"]} • Personality: ${d["Numerology"]["Personality"]}</p><p class="muted">${d["Numerology"].text}</p>`;
+
+        const bio = d.lang === "tr"
+          ? barHTML("Fiziksel", d["Biyoritim"]["Fiziksel"])
+            + barHTML("Duygusal", d["Biyoritim"]["Duygusal"])
+            + barHTML("Zihinsel", d["Biyoritim"]["Zihinsel"])
+            + `<p class="muted">${d["Biyoritim"].text}</p>`
+          : barHTML("Physical", d["Biorhythm"]["Physical"])
+            + barHTML("Emotional", d["Biorhythm"]["Emotional"])
+            + barHTML("Intellectual", d["Biorhythm"]["Intellectual"])
+            + `<p class="muted">${d["Biorhythm"].text}</p>`;
+
+        const ages = d.lang === "tr"
+          ? `<p>Yaş: ${d["Yaş & Dönüm Noktaları"]["Yaş"]} • Gün: ${d["Yaş & Dönüm Noktaları"]["Gün"]} • Sonraki 10K Gün: ${d["Yaş & Dönüm Noktaları"]["Sonraki10K"]}</p>`
+          : `<p>Age: ${d["Age & Milestones"]["Age"]} • Days: ${d["Age & Milestones"]["Days"]} • Next10K: ${d["Age & Milestones"]["Next10K"]}</p>`;
+
+        const cz = d.lang === "tr"
+          ? `<p>${d["Çin Burcu"]["Element"]} ${d["Çin Burcu"]["Hayvan"]}</p><p class="muted">${d["Çin Burcu"].text}</p>`
+          : `<p>${d["Chinese Zodiac"]["Element"]} ${d["Chinese Zodiac"]["Animal"]}</p><p class="muted">${d["Chinese Zodiac"].text}</p>`;
+
+        const daily = d.lang === "tr"
+          ? `<p>${d["Günlük"]["text"]}</p>`
+          : `<p>${d["Daily"]["text"]}</p>`;
+
+        const insight = d.lang === "tr"
+          ? `<p>${d["Yorum"]}</p><div class="callout">💡 ${d["Öneri"]}</div>`
+          : `<p>${d["Insight"]}</p><div class="callout">💡 ${d["Suggestion"]}</div>`;
+
+        cards.innerHTML =
+          cardHTML("🌞 Astroloji", astro) +
+          cardHTML("🔢 Numeroloji", num) +
+          cardHTML("⚙️ Biyoritim", bio) +
+          cardHTML("📆 Dönüm Noktaları", ages) +
+          cardHTML("🐉 Çin Burcu", cz) +
+          cardHTML("🪄 Günlük Rehber", daily) +
+          cardHTML("🧠 Sentient Yorumu", insight);
+
+      } catch (e) {
+        document.getElementById("cards").innerHTML =
+          cardHTML("Hata", `<p>🚨 ${e.message}</p>`);
+      } finally {
+        btn.disabled = false;
       }
     }
+
+    document.getElementById("go").addEventListener("click", analyze);
   </script>
-</head>
-
-<body>
-  <h1>🌌 Sentient Astro Portal</h1>
-  <p>Kişisel astrolojik analizini oluşturmak için bilgilerini gir:</p>
-
-  <div class="form-container">
-    <input type="text" id="name" placeholder="İsim Soyisim">
-    <input type="date" id="dob">
-    <input type="time" id="time" value="06:00">
-    <input type="text" id="place" placeholder="Doğum Yeri (örn: Denizli)">
-    <select id="lang">
-      <option value="tr" selected>Türkçe</option>
-      <option value="en">English</option>
-    </select>
-    <button onclick="analyze()">Analiz Et 🔮</button>
-  </div>
-
-  <div id="result"></div>
 </body>
 </html>
