@@ -1,48 +1,98 @@
-.sun-card {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:16px;
-  padding:20px;
-  margin-bottom:24px;
-  background:rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.1);
-  box-shadow:0 0 15px rgba(255,255,255,0.05);
-  text-align:center;
-  transition:0.5s;
-}
-.sun-card .emoji{
-  font-size:56px;
-  margin-right:16px;
-}
-.sun-card h2{
-  margin:0;
-  font-size:28px;
-}
-.sun-card p{
-  margin:4px 0 0;
-  font-size:15px;
-  color:#ccc;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #0b0b10;
+  color: #fff;
+  margin: 0;
+  padding: 0;
 }
 
-/* Element renkleri */
-.sun-card.fire {
-  border-color:#ff3f3f;
-  box-shadow:0 0 25px rgba(255,64,0,0.6);
+header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: linear-gradient(90deg, #ff0099, #ff5f6d);
+  padding: 15px 25px;
 }
-.sun-card.water {
-  border-color:#4faaff;
-  box-shadow:0 0 25px rgba(80,150,255,0.5);
+
+.logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
 }
-.sun-card.air {
-  border-color:#79faff;
-  box-shadow:0 0 25px rgba(120,240,255,0.5);
+
+h1 {
+  font-size: 1.8em;
+  color: white;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
-.sun-card.earth {
-  border-color:#4fff7b;
-  box-shadow:0 0 25px rgba(80,255,120,0.5);
+
+.astro-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 20px;
 }
-.sun-card.neutral {
-  border-color:#aaa;
-  box-shadow:0 0 25px rgba(255,255,255,0.3);
+
+.card {
+  background-color: #151520;
+  border: 1px solid #ff5f6d;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(255, 100, 150, 0.3);
+}
+
+h2 {
+  color: #ff99cc;
+  font-weight: 500;
+  border-bottom: 1px solid #ff99cc;
+  padding-bottom: 6px;
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  font-size: 1em;
+}
+
+input {
+  background-color: #1f1f2e;
+  color: #fff;
+}
+
+button {
+  background-color: #ff0099;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background-color: #ff5f6d;
+}
+
+#bio {
+  background-color: #1f1f2e;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.95em;
+}
+
+.dobly-img {
+  width: 120px;
+  display: block;
+  margin: 10px auto;
+  border-radius: 12px;
+  border: 1px solid #ff99cc;
+  box-shadow: 0 0 10px rgba(255,150,200,0.4);
+}
+
+p {
+  line-height: 1.6;
 }
