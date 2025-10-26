@@ -1,98 +1,81 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
 body {
-  font-family: 'Poppins', sans-serif;
-  background-color: #0b0b10;
-  color: #fff;
-  margin: 0;
-  padding: 0;
+    background-color: #0e0d10;
+    color: #f6f0ff;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    text-align: center;
 }
 
 header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: linear-gradient(90deg, #ff0099, #ff5f6d);
-  padding: 15px 25px;
+    background: linear-gradient(90deg, #ff4f9a, #ff72c2);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
 }
 
 .logo {
-  width: 50px;
-  height: 50px;
-  border-radius: 10px;
+    width: 60px;
+    border-radius: 15px;
 }
 
-h1 {
-  font-size: 1.8em;
-  color: white;
-  font-weight: 600;
-  letter-spacing: 1px;
+main {
+    padding: 30px;
 }
 
-.astro-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
-  padding: 20px;
+h1, h2, h3 {
+    color: #ff7adb;
 }
 
-.card {
-  background-color: #151520;
-  border: 1px solid #ff5f6d;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 0 10px rgba(255, 100, 150, 0.3);
-}
-
-h2 {
-  color: #ff99cc;
-  font-weight: 500;
-  border-bottom: 1px solid #ff99cc;
-  padding-bottom: 6px;
+.form-group {
+    margin: 15px auto;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 input, button {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 6px;
-  border: none;
-  outline: none;
-  font-size: 1em;
-}
-
-input {
-  background-color: #1f1f2e;
-  color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
 }
 
 button {
-  background-color: #ff0099;
-  color: white;
-  cursor: pointer;
-  transition: 0.2s;
+    background-color: #ff4f9a;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
 button:hover {
-  background-color: #ff5f6d;
+    background-color: #ff72c2;
 }
 
-#bio {
-  background-color: #1f1f2e;
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 0.95em;
+.card {
+    border: 1px solid #ff4f9a;
+    border-radius: 15px;
+    background-color: #1c1820;
+    padding: 20px;
+    margin: 20px auto;
+    width: 70%;
+    box-shadow: 0 0 20px rgba(255, 0, 128, 0.2);
 }
 
 .dobly-img {
-  width: 120px;
-  display: block;
-  margin: 10px auto;
-  border-radius: 12px;
-  border: 1px solid #ff99cc;
-  box-shadow: 0 0 10px rgba(255,150,200,0.4);
+    width: 120px;
+    margin-top: 10px;
+    border-radius: 15px;
 }
 
-p {
-  line-height: 1.6;
+footer {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #1a1720;
+    color: #ccc;
+    font-size: 13px;
 }
